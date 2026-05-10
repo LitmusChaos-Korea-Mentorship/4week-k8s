@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-demo
+  labels:
+    app: config-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-demo
+  template:
+    metadata:
+      labels:
+        app: config-demo
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["sh", "-c", "while true; do echo \"$APP_MODE $(cat /etc/app/config/message)\"; sleep 10; done"]
+          env:
+            - name: APP_MODE
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: APP_MODE
+            - name: APP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: APP_TOKEN
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/app/config
+              readOnly: true
+            - name: cache-volume
+              mountPath: /cache
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+      volumes:
+        - name: config-volume
+          configMap:
+            name: app-config
+            items:
+              - key: message
+                path: message
+        - name: cache-volume
+          emptyDir: {}
+

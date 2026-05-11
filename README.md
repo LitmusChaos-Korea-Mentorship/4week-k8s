@@ -1,6 +1,6 @@
 # 4week-k8s: Kubernetes 기본 개념과 2시간 실습
 
-이 자료는 Ubuntu 환경에서 Kubernetes의 핵심 개념을 빠르게 이해하고, `minikube`로 직접 배포/노출/설정/Helm/운영 명령을 실습하는 2시간 내외 워크숍입니다.
+이 자료는 Kubernetes의 핵심 개념을 빠르게 이해하고, `minikube`로 직접 배포/노출/설정/Helm/운영 명령을 실습하는 2시간 내외 워크숍입니다. 설치 가이드는 Linux, Ubuntu, Windows, macOS로 나누고, 이후 실습 명령은 Linux shell 기준으로 작성합니다.
 
 ## 왜 minikube인가?
 

@@ -53,7 +53,14 @@ cd /mnt/d/Litmus/4week-k8s
 ## 실습 종료 후 정리
 
 ```bash
-kind delete cluster --name k8s-lab
+./cleanup.sh
 ```
 
-클러스터만 지우며, 설치한 `kubectl`, `kind`, `helm`, Docker 패키지는 삭제하지 않습니다.
+스크립트는 실습 중 켜둔 `kubectl port-forward` 프로세스를 종료하고, `k8s-lab`, `chaos-lab` namespace와 `k8s-lab` kind 클러스터를 정리합니다. 설치한 `kubectl`, `kind`, `helm`, Docker 패키지와 다른 Docker 컨테이너/이미지는 삭제하지 않습니다.
+
+실행 권한이 없다는 메시지가 나오면 한 번만 권한을 부여합니다.
+
+```bash
+chmod +x cleanup.sh
+./cleanup.sh
+```

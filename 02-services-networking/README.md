@@ -66,22 +66,17 @@ curl -I http://localhost:8080
 
 ## 4. NodePort Service 생성
 
+`00-setup/kind-config.yaml`에서 kind 노드의 `30080` 포트를 호스트 `30080` 포트로 매핑해 두었습니다.
+
 ```bash
 kubectl apply -f service-nodeport.yaml
 kubectl get service web-nodeport
 ```
 
-minikube에서 NodePort URL 확인:
+로컬에서 접속 확인:
 
 ```bash
-minikube service web-nodeport -n k8s-lab --url
-```
-
-출력된 URL로 접속:
-
-```bash
-WEB_URL=$(minikube service web-nodeport -n k8s-lab --url)
-curl -I "$WEB_URL"
+curl -I http://localhost:30080
 ```
 
 ## 5. Service와 Pod 연결 구조 확인
@@ -103,8 +98,7 @@ kubectl get pods --show-labels
 ```bash
 kubectl get svc
 kubectl get endpoints
-curl -I "$(minikube service web-nodeport -n k8s-lab --url)"
+curl -I http://localhost:30080
 ```
 
 HTTP 응답 헤더가 보이면 성공입니다.
-

@@ -4,7 +4,7 @@
 
 예상 시간: 20-25분
 
-이 단계는 선택 심화 실습입니다. 앞 단계에서 `minikube`, `kubectl`, `helm` 설치와 기본 Deployment/Service 실습을 마친 뒤 진행하세요.
+이 단계는 선택 심화 실습입니다. 앞 단계에서 `kind`, `kubectl`, `helm` 설치와 기본 Deployment/Service 실습을 마친 뒤 진행하세요.
 
 LitmusChaos 설치와 `pod-delete` 실험 실행은 다음 시간에 진행합니다. 이번 시간에는 Litmus를 설치하지 않고, 같은 장애 유형을 `kubectl delete pod`로 먼저 이해합니다.
 

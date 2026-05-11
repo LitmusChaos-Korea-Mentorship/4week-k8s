@@ -50,11 +50,10 @@ kubectl get all -l app.kubernetes.io/instance=lab-nginx
 kubectl get service lab-nginx
 ```
 
-minikube에서 접속 URL 확인:
+`00-setup/kind-config.yaml`에서 kind 노드의 `30081` 포트를 호스트 `30081` 포트로 매핑해 두었습니다. 로컬에서 접속을 확인합니다.
 
 ```bash
-NGINX_URL=$(minikube service lab-nginx -n k8s-lab --url)
-curl -I "$NGINX_URL"
+curl -I http://localhost:30081
 ```
 
 ## 4. Values 확인과 업그레이드

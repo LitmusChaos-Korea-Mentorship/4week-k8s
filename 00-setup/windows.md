@@ -30,7 +30,7 @@ docker version
 docker ps
 ```
 
-이후 Ubuntu 터미널 안에서 [ubuntu.md](./ubuntu.md)의 절차를 따라 `minikube`, `kubectl`, `Helm`을 설치합니다.
+이후 Ubuntu 터미널 안에서 [ubuntu.md](./ubuntu.md)의 절차를 따라 `kind`, `kubectl`, `Helm`을 설치합니다.
 
 주의:
 
@@ -49,15 +49,15 @@ docker ps
 winget으로 도구를 설치합니다.
 
 ```powershell
-winget install Kubernetes.minikube
-winget install Kubernetes.kubectl
-winget install Helm.Helm
+winget install -e --id Kubernetes.kind
+winget install -e --id Kubernetes.kubectl
+winget install -e --id Helm.Helm
 ```
 
 새 PowerShell을 열고 확인합니다.
 
 ```powershell
-minikube version
+kind version
 kubectl version --client
 helm version --short
 ```
@@ -65,13 +65,14 @@ helm version --short
 클러스터 시작:
 
 ```powershell
-minikube start --driver=docker --cpus=2 --memory=4096
+cd path\to\4week-k8s\00-setup
+kind create cluster --name k8s-lab --config kind-config.yaml
 ```
 
 확인:
 
 ```powershell
-minikube status
+kubectl config use-context kind-k8s-lab
 kubectl get nodes -o wide
 ```
 
@@ -93,9 +94,9 @@ WSL 배포판 확인:
 wsl -l -v
 ```
 
-minikube를 처음부터 다시 만들기:
+kind 클러스터를 처음부터 다시 만들기:
 
 ```powershell
-minikube delete
-minikube start --driver=docker --cpus=2 --memory=4096
+kind delete cluster --name k8s-lab
+kind create cluster --name k8s-lab --config kind-config.yaml
 ```

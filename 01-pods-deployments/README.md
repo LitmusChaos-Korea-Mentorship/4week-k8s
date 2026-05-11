@@ -4,6 +4,43 @@
 
 예상 시간: 30분
 
+## 0. kind 클러스터 확인
+
+이 실습은 `kubectl`이 kind 클러스터에 연결된 상태에서 진행해야 합니다. 먼저 `00-setup`에서 만든 클러스터와 컨텍스트를 확인합니다.
+
+확인:
+
+```bash
+kubectl config get-contexts
+kubectl config use-context kind-k8s-lab
+kubectl cluster-info
+kubectl get nodes
+```
+
+정상이라면 `kubectl get nodes`에서 `k8s-lab-control-plane` 노드가 `Ready` 상태로 보여야 합니다.
+
+다음과 같은 에러가 나오면 YAML 파일 문제가 아니라 Kubernetes API 서버 연결 문제입니다.
+
+```text
+The connection to the server 127.0.0.1:<port> was refused
+failed to download openapi
+```
+
+해결 순서:
+
+1. Docker가 실행 중인지 확인합니다.
+2. kind 클러스터가 있는지 확인합니다.
+3. 없거나 깨져 있으면 `00-setup`에서 다시 만듭니다.
+
+```bash
+docker ps
+kind get clusters
+kind create cluster --name k8s-lab --config ../00-setup/kind-config.yaml
+kubectl config use-context kind-k8s-lab
+```
+
+API 서버 연결이 복구된 뒤에만 아래 실습 명령을 실행합니다. `--validate=false`는 검증만 건너뛰는 옵션이라 API 서버가 꺼져 있으면 Pod 생성도 실패합니다.
+
 ## 1. Namespace 생성
 
 실습 리소스를 분리하기 위해 namespace를 만듭니다.
@@ -127,4 +164,3 @@ kubectl rollout history deployment/web
 ```
 
 `web` Deployment가 `READY 2/2` 상태면 다음 단계로 이동합니다.
-

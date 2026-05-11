@@ -102,7 +102,7 @@ kubectl get namespace k8s-lab
 클러스터를 완전히 지우려면:
 
 ```bash
-minikube delete
+kind delete cluster --name k8s-lab
 ```
 
 ## 마무리 질문

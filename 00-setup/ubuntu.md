@@ -41,16 +41,16 @@ docker version
 docker run --rm hello-world
 ```
 
-## 3. minikube 설치
+## 3. kind 설치
 
 ```bash
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-sudo install minikube-linux-amd64 /usr/local/bin/minikube
-rm minikube-linux-amd64
-minikube version
+ARCH=$(uname -m)
+[ "$ARCH" = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-amd64
+[ "$ARCH" = aarch64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.31.0/kind-linux-arm64
+chmod +x ./kind
+sudo mv ./kind /usr/local/bin/kind
+kind version
 ```
-
-ARM64 Ubuntu라면 파일명을 `minikube-linux-arm64`로 바꿔 설치합니다.
 
 ## 4. kubectl 설치
 
@@ -73,13 +73,14 @@ helm version --short
 ## 6. 클러스터 시작
 
 ```bash
-minikube start --driver=docker --cpus=2 --memory=4096
+cd /path/to/4week-k8s/00-setup
+kind create cluster --name k8s-lab --config kind-config.yaml
 ```
 
 확인:
 
 ```bash
-minikube status
+kubectl config use-context kind-k8s-lab
 kubectl get nodes -o wide
 ```
 
@@ -101,4 +102,3 @@ Docker daemon 상태 확인:
 sudo systemctl status docker
 sudo systemctl start docker
 ```
-

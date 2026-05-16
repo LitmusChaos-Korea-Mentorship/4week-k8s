@@ -51,6 +51,7 @@ Docker가 실행 중이 아니면 `kind create cluster`가 실패합니다.
 도구 설치가 끝나면 OS와 관계없이 같은 명령으로 kind 클러스터를 시작합니다. 이 실습은 NodePort 확인을 위해 [kind-config.yaml](./kind-config.yaml)에 `30080`, `30081` 포트를 매핑합니다.
 
 ```bash
+cd 00-setup
 kind create cluster --name k8s-lab --config kind-config.yaml
 ```
 

@@ -52,7 +52,10 @@ kubectl get service lab-nginx
 
 `00-setup/kind-config.yaml`에서 kind 노드의 `30081` 포트를 호스트 `30081` 포트로 매핑해 두었습니다. 로컬에서 접속을 확인합니다.
 
+Bitnami nginx chart는 HTTP와 HTTPS 포트를 함께 만들 수 있습니다. `kubectl get service lab-nginx` 출력에 `80:30081/TCP`, `443:30101/TCP`처럼 포트가 두 개 보여도 이번 실습에서는 HTTP 포트인 `30081`만 사용합니다. HTTPS 쪽 NodePort는 kind 설정에 매핑하지 않았으므로 호스트에서 접근하지 않습니다.
+
 ```bash
+kubectl rollout status deployment/lab-nginx
 curl -I http://localhost:30081
 ```
 

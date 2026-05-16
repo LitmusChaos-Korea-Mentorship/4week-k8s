@@ -208,6 +208,8 @@ kubectl run curl-test --rm -it --image=curlimages/curl --restart=Never -- \
   curl -I http://web-clusterip
 ```
 
+환경에 따라 `Unable to use a TTY` 경고가 함께 보일 수 있습니다. HTTP 응답 헤더가 출력되면 정상이며, 이 경고는 무시해도 됩니다.
+
 만약 이전 테스트 Pod가 남아 있어서 `pods "curl-test" already exists` 오류가 나오면 삭제 후 다시 실행합니다.
 
 ```bash

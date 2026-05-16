@@ -72,7 +72,7 @@ kubectl describe pod nginx-pod
 Pod 안의 컨테이너에 명령 실행:
 
 ```bash
-kubectl exec -it nginx-pod -- nginx -v
+kubectl exec nginx-pod -- nginx -v
 ```
 
 Pod 삭제:

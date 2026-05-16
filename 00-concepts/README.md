@@ -149,7 +149,6 @@ CPU/RAM은 어떻게 되는가:
 
 주의:
 - Node, PersistentVolume 같은 일부 리소스는 namespace에 속하지 않는 cluster-scoped 리소스입니다.
-- Service와 Namespace를 합쳐서 "nameservice"라고 부르지는 않습니다. 실습에서는 Namespace와 Service를 각각 다룹니다.
 
 ### Pod와 Linux network namespace
 

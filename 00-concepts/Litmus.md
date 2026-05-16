@@ -8,7 +8,7 @@
 
 ![LitmusChaos 전체 구조](./image.png)
 
-그림은 크게 두 영역으로 볼 수 있습니다.
+첫 번째 그림(`image.png`)은 크게 두 영역으로 볼 수 있습니다.
 
 - 왼쪽 분홍색 영역: LitmusChaos 포털과 API가 동작하는 관리 영역
 - 오른쪽 파란색 영역: Chaos workflow를 실행하고 이벤트를 수집하는 실행 영역
@@ -36,11 +36,7 @@
 
 그림에는 namespace 이름이 직접 쓰여 있지 않지만, 실제 설치에서는 Litmus 관련 리소스를 보통 별도 namespace에 배치합니다.
 
-예:
-
-```bash
-kubectl create namespace litmus
-```
+예를 들어 설치 문서에서는 `kubectl create namespace litmus` 같은 명령으로 namespace를 먼저 만들 수 있습니다. 이 문서는 구조를 읽기 위한 설명이므로 여기서는 실행하지 않습니다.
 
 Namespace를 나누는 이유:
 
@@ -145,7 +141,7 @@ GitOps 관점의 흐름:
 
 ![LitmusChaos GitOps 구조](./image-1.png)
 
-두 번째 그림은 클러스터가 둘로 나뉜 구조를 보여줍니다.
+두 번째 그림(`image-1.png`)은 Red Cluster와 Blue Cluster로 클러스터가 둘로 나뉜 구조를 보여줍니다.
 
 - Red Cluster: Litmus 관리 컴포넌트 또는 GitOps 제어 흐름이 있는 클러스터
 - Blue Cluster: 실제 애플리케이션과 chaos 실행 컴포넌트가 있는 대상 클러스터

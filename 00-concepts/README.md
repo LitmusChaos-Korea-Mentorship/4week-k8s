@@ -59,20 +59,7 @@ spec:
 - **Ambassador**: 주 컨테이너가 외부 시스템에 접근할 때 중간 프록시 역할을 합니다.
 - **Init container**: 앱 컨테이너가 시작되기 전에 초기화 작업을 먼저 수행합니다. 예를 들어 설정 파일 생성, 의존 서비스 대기, 마이그레이션 준비에 씁니다.
 
-예를 들어 웹 서버 컨테이너가 로그 파일을 `/var/log/app`에 쓰고, 로그 수집 컨테이너가 같은 디렉터리를 읽어 외부 로그 시스템으로 전송할 수 있습니다. 이때 두 컨테이너는 같은 Pod 안에서 같은 Volume을 공유해야 하므로 멀티 컨테이너 Pod가 적합합니다.
-
-### 같은 Volume을 공유하면 생기는 일
-
-Pod 안의 여러 컨테이너는 같은 Volume을 각자 다른 경로에 마운트할 수 있습니다.
-
-예:
-
-```text
-app container       -> /var/log/app 에 로그 기록
-log-agent container -> /logs 로 같은 Volume을 마운트해서 로그 수집
-```
-
-이렇게 하면 두 컨테이너가 파일을 통해 데이터를 주고받을 수 있습니다. 다만 같은 파일을 동시에 쓰는 구조는 충돌과 데이터 손상을 만들 수 있으므로 주의해야 합니다.
+예를 들어 웹 서버 컨테이너가 로그 파일을 쓰고, 로그 수집 컨테이너가 같은 파일을 읽어 외부 로그 시스템으로 전송할 수 있습니다. 이때 같은 Pod 안에서 Volume을 공유하는 방식이 사용됩니다. Volume의 상세 개념은 [03-config-storage](../03-config-storage/README.md)에서 다룹니다.
 
 ### 멀티 컨테이너 Pod에서 주의할 점
 
@@ -166,17 +153,9 @@ CPU/RAM은 어떻게 되는가:
 
 ### Pod와 Linux network namespace
 
-Pod 안의 컨테이너들은 같은 network namespace를 공유합니다. 그래서 같은 Pod 안의 컨테이너들은 같은 Pod IP를 사용합니다.
+Pod 안의 컨테이너들은 같은 network namespace를 공유합니다. 그래서 같은 Pod 안의 컨테이너끼리는 `localhost`로 통신할 수 있고, 같은 Pod IP를 사용합니다.
 
-의미:
-
-- 같은 Pod 안의 컨테이너끼리는 `localhost`로 통신할 수 있습니다.
-- 한 컨테이너가 `localhost:8080`에서 뜨면, 다른 컨테이너도 같은 Pod 안에서 `localhost:8080`으로 접근할 수 있습니다.
-- 같은 Pod 안에서 두 컨테이너가 같은 포트를 동시에 열 수 없습니다. 예를 들어 두 컨테이너가 모두 `0.0.0.0:8080`을 사용하려 하면 포트 충돌이 납니다.
-
-이 구조는 프록시 sidecar에 자주 쓰입니다. 애플리케이션 컨테이너는 `localhost`의 프록시에 요청을 보내고, 프록시 컨테이너가 인증, 라우팅, 재시도, 관측 데이터를 처리할 수 있습니다.
-
-정리하면 Kubernetes Namespace는 리소스를 나누는 논리적 공간이고, network namespace는 Pod 안 컨테이너들이 네트워크를 공유하게 만드는 Linux 격리 단위입니다.
+Service와 Kubernetes 네트워크의 상세 개념은 [02-services-networking](../02-services-networking/README.md)에서 실습과 함께 다룹니다.
 
 ## 4. 전체 구조
 
@@ -293,164 +272,13 @@ spec:
           image: nginx:1.25
 ```
 
-## 8. Service와 Kubernetes 네트워크
+## 8. 이후 실습에서 다룰 개념
 
-Service는 Pod들 앞에 고정된 네트워크 접속 지점을 만들어 줍니다. 02 실습의 핵심은 "Pod IP가 계속 바뀌어도 사용자는 안정적인 주소로 접근할 수 있어야 한다"는 문제를 이해하는 것입니다.
+여기서는 전체 관계만 먼저 잡고, 주제별 상세 개념은 각 실습 문서에서 다룹니다.
 
-### Pod IP가 불안정한 이유
-
-Deployment가 Pod를 2개 만들었다고 가정해보겠습니다.
-
-```text
-Deployment/web
-  ├─ Pod web-abc  app=web  10.244.0.10
-  └─ Pod web-def  app=web  10.244.0.11
-```
-
-각 Pod는 클러스터 내부 네트워크에서 고유한 IP를 받습니다. 하지만 Pod는 일시적인 실행 단위라 삭제되거나 재배포되면 새 Pod가 만들어지고 IP도 바뀔 수 있습니다.
-
-```text
-Pod web-abc  10.244.0.10  삭제
-Pod web-xyz  10.244.0.23  새로 생성
-```
-
-따라서 클라이언트가 Pod IP를 직접 기억하고 접근하는 구조는 안정적이지 않습니다. Deployment가 Pod를 계속 바꾸더라도, 클라이언트가 바라보는 주소는 그대로여야 합니다. 이 역할을 Service가 합니다.
-
-### Service가 트래픽을 보내는 방식
-
-Service는 label selector로 대상 Pod를 찾습니다. 아래 Service는 `app=web` label을 가진 Pod들을 대상으로 삼습니다.
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: web-clusterip
-spec:
-  type: ClusterIP
-  selector:
-    app: web
-  ports:
-    - name: http
-      port: 80
-      targetPort: 80
-```
-
-중요한 필드:
-
-- `metadata.name`: Service 이름입니다. 같은 namespace 안에서는 DNS 이름으로도 사용됩니다.
-- `spec.type`: Service를 어디까지 노출할지 정합니다.
-- `spec.selector`: 트래픽을 보낼 Pod를 label로 찾습니다.
-- `ports.port`: Service가 받는 포트입니다.
-- `ports.targetPort`: 실제 Pod 컨테이너로 전달할 포트입니다.
-
-흐름은 다음과 같습니다.
-
-```text
-Client
-  -> Service/web-clusterip:80
-  -> Endpoint 목록 중 하나 선택
-  -> Pod app=web:80
-```
-
-Service가 선택한 실제 Pod 목록은 Endpoint 또는 EndpointSlice로 확인할 수 있습니다.
-
-```bash
-kubectl get endpoints web-clusterip
-kubectl get pods --show-labels
-```
-
-Service selector와 Pod label이 맞지 않으면 Service는 만들어져도 트래픽을 보낼 Pod를 찾지 못합니다. 이때 Service의 Endpoint가 비어 있게 됩니다.
-
-### ClusterIP
-
-`ClusterIP`는 Service의 기본 타입입니다. 클러스터 내부에서만 접근 가능한 가상 IP와 DNS 이름을 만듭니다.
-
-```text
-Pod -> web-clusterip -> app=web Pod 중 하나
-```
-
-같은 namespace 안의 Pod에서는 Service 이름만으로 접근할 수 있습니다.
-
-```bash
-curl http://web-clusterip
-```
-
-다른 namespace에서 접근할 때는 namespace를 포함한 DNS 이름을 사용할 수 있습니다.
-
-```bash
-curl http://web-clusterip.k8s-lab.svc.cluster.local
-```
-
-여기서 중요한 점은 `web-clusterip`가 특정 Pod 이름이 아니라 Service 이름이라는 것입니다. Pod가 바뀌어도 Service 이름은 유지됩니다.
-
-### NodePort
-
-`NodePort`는 Node의 특정 포트를 열어서 클러스터 바깥에서 Service로 들어올 수 있게 합니다.
-
-예를 들어 `nodePort: 30080`이면 개념상 다음 흐름이 됩니다.
-
-```text
-외부 Client
-  -> NodeIP:30080
-  -> Service/web-nodeport:80
-  -> Pod app=web:80
-```
-
-NodePort의 포트는 보통 `30000-32767` 범위에서 사용합니다. 02 실습에서는 `service-nodeport.yaml`에서 `30080`을 고정합니다.
-
-```yaml
-spec:
-  type: NodePort
-  ports:
-    - port: 80
-      targetPort: 80
-      nodePort: 30080
-```
-
-필드의 의미:
-
-- `nodePort: 30080`: Node 바깥에서 들어오는 포트입니다.
-- `port: 80`: Service 내부 포트입니다.
-- `targetPort: 80`: Pod 컨테이너 포트입니다.
-
-일반적인 VM이나 서버 기반 클러스터라면 `NodeIP:30080`으로 접근합니다. kind에서는 Node가 실제 VM이 아니라 Docker 컨테이너입니다. 그래서 호스트의 `localhost:30080`으로 접근하려면 kind 클러스터 생성 시 Docker 포트 매핑을 미리 걸어야 합니다.
-
-이번 실습의 [00-setup/kind-config.yaml](../00-setup/kind-config.yaml)은 다음 포트를 매핑합니다.
-
-```yaml
-extraPortMappings:
-  - containerPort: 30080
-    hostPort: 30080
-    protocol: TCP
-```
-
-그래서 02 실습에서는 브라우저나 `curl`로 다음 주소를 확인합니다.
-
-```bash
-curl -I http://localhost:30080
-```
-
-### port-forward
-
-`port-forward`는 Service 타입이 아닙니다. `kubectl`이 로컬 PC의 포트와 Kubernetes 리소스를 임시로 연결하는 디버깅 방법입니다.
-
-```bash
-kubectl port-forward service/web-clusterip 8080:80
-curl http://localhost:8080
-```
-
-이 명령은 로컬 `localhost:8080`으로 들어온 요청을 Service의 `80` 포트로 전달합니다. Service를 외부에 공개하는 설정을 바꾸지 않고 잠깐 접속을 확인할 때 유용합니다. 터미널에서 `Ctrl+C`를 누르면 연결이 종료됩니다.
-
-### Service 타입 비교
-
-| 타입 | 접근 범위 | 주 사용처 |
-| --- | --- | --- |
-| `ClusterIP` | 클러스터 내부 | Pod끼리 통신 |
-| `NodePort` | 클러스터 외부에서 Node IP와 포트로 접근 | 로컬 실습, 간단한 외부 노출 |
-| `LoadBalancer` | 클라우드 로드밸런서 주소로 접근 | 운영 환경 외부 노출 |
-| `ExternalName` | 외부 DNS 이름으로 연결 | 외부 서비스를 클러스터 내부 이름처럼 사용 |
-
-02 실습에서는 `ClusterIP`, `NodePort`, `port-forward`를 다룹니다. `ClusterIP`로 내부 통신을 확인하고, `port-forward`로 로컬 디버깅을 해보고, `NodePort`로 kind 노드 포트 매핑을 통한 외부 접근 흐름을 확인합니다.
+- Service와 Kubernetes 네트워크: [02-services-networking](../02-services-networking/README.md)
+- ConfigMap, Secret, Volume: [03-config-storage](../03-config-storage/README.md)
+- Helm: [04-helm-basics](../04-helm-basics/README.md)
 
 ## 9. ConfigMap과 Secret
 
@@ -476,19 +304,7 @@ Secret은 민감 정보를 주입할 때 씁니다.
 - Secret은 단순 base64 인코딩 형태로 보일 수 있습니다.
 - 운영에서는 RBAC, etcd 암호화, 외부 secret manager 연동까지 고려해야 합니다.
 
-## 10. Volume
-
-컨테이너 파일 시스템은 기본적으로 컨테이너 생명주기와 강하게 묶여 있습니다. Volume은 Pod에 파일 저장 공간이나 설정 파일을 연결할 때 사용합니다.
-
-이번 실습의 `emptyDir`:
-
-- Pod가 생성될 때 비어 있는 디렉터리로 시작합니다.
-- 같은 Pod 안에서는 컨테이너 재시작 후에도 유지될 수 있습니다.
-- Pod가 삭제되면 데이터도 사라집니다.
-
-영구 저장이 필요하면 `PersistentVolume`과 `PersistentVolumeClaim`을 사용합니다.
-
-## 11. Helm
+## 10. Helm
 
 Helm은 Kubernetes 패키지 매니저입니다.
 
@@ -518,7 +334,7 @@ helm upgrade <release> <chart>
 helm uninstall <release>
 ```
 
-## 12. 실습 리소스 관계
+## 11. 실습 리소스 관계
 
 이번 실습에서 만드는 주요 관계는 다음과 같습니다.
 
@@ -539,7 +355,7 @@ k8s-lab Namespace
 
 이 구조를 먼저 이해하면 뒤의 명령어가 단순 암기가 아니라 "어떤 리소스를 보고 있는지"로 연결됩니다.
 
-## 13. Chaos Engineering
+## 12. Chaos Engineering
 
 Chaos Engineering은 장애를 일부러 주입해서 시스템이 예상대로 버티고 회복하는지 검증하는 방식입니다. 핵심은 무작정 부수는 것이 아니라, 가설을 세우고 작은 범위에서 통제된 실험을 실행하는 것입니다.
 

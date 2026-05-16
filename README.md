@@ -20,8 +20,8 @@
 | 0 | `00-concepts` | Kubernetes 기본 개념과 실습 리소스 관계 이해 | 20분 |
 | 1 | `00-setup` | Docker, kind, kubectl, Helm 설치 및 클러스터 시작 | 20분 |
 | 2 | `01-pods-deployments` | Pod, Deployment, ReplicaSet, rollout 이해 | 25분 |
-| 3 | `02-services-networking` | Namespace, ClusterIP, NodePort, port-forward로 앱 접속 | 20분 |
-| 4 | `03-config-storage` | ConfigMap, Secret, Volume 기본 실습 | 20분 |
+| 3 | `02-services-networking` | Service와 네트워크 개념, ClusterIP, NodePort, port-forward 실습 | 20분 |
+| 4 | `03-config-storage` | ConfigMap, Secret, Volume 개념과 기본 실습 | 20분 |
 | 5 | `04-helm-basics` | Helm chart 설치, 조회, 업그레이드, 삭제 | 10분 |
 | 6 | `05-operations-cleanup` | 로그, describe, exec, 리소스 정리 | 5분 |
 | 선택 | `06-litmus-chaos` | Chaos Engineering 개념, 수동 Pod 삭제 실습, LitmusChaos 다음 시간 예고 | 20-25분 |
